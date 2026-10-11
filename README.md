@@ -15,7 +15,7 @@
 
 ## 🏛️ Arsitektur Aplikasi & Gambaran Umum
 
-Aplikasi ini dibangun menggunakan arsitektur **Client-Server** terpisah. Aplikasi Klien ( Blazor Hybrid / .NET MAUI) **tidak mengakses database secara langsung**, melainkan mengonsumsi layanan **ASP.NET Core Web API** melalui protokol HTTP/JSON menggunakan `HttpClient` dan Service Class.
+Aplikasi ini dibangun menggunakan arsitektur **Client-Server** terpisah. Aplikasi Klien ( Blazor Hybrid / .NET MAUI) **tidak mengakses database secara langsung**, melainkan mengonsumsi layanan **ASP.NET Core Web API** melalui protokol **HTTP JSON**. Backend bertanggung jawab atas validasi, operasi CRUD, serta interaksi dengan SQLite menggunakan Entity Framework Core.
 
 ```text
 +-------------------------------------------------------------+
@@ -113,7 +113,7 @@ AcademicSystem/
 * **`DosenId`** (`int`): Foreign Key, Wajib merujuk ke Dosen yang tersedia.
 
 ### 3. Aturan Bisnis & Aturan Penghapusan
-* **Pencegahan Penghapusan Dosen Wali:** Data dosen yang masih digunakan sebagai Dosen Wali oleh minimal satu mahasiswa **tidak boleh dihapus**. API mengembalikan respons `409 Conflict` dengan pesan error informatif.
+* **Pencegahan Penghapusan Dosen Wali:** Data dosen yang masih digunakan sebagai Dosen Wali oleh minimal satu mahasiswa **tidak boleh dihapus**. API mengembalikan respons `409 Conflict` dengan pesan error yang jelas.
 * **Circular Reference Handling:** Endpoint GET Mahasiswa memanfaatkan `MahasiswaReadDto` untuk memuat string `NamaDosenWali` tanpa menyebabkan *infinite loop* JSON.
 
 ---
@@ -252,6 +252,14 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
    * [.NET MAUI Blazor Hybrid App Development](https://learn.microsoft.com/en-us/dotnet/maui/blazor/)
    * [Entity Framework Core SQLite Provider](https://learn.microsoft.com/en-us/ef/core/providers/sqlite/)
 2. **AI Tooling (Gemini AI):** Digunakan sebagai alat bantu konsultasi arsitektur DTO, pembuatan template validasi DataAnnotations, serta penyusunan struktur dokumentasi `README.md`.
+
+---
+
+### 🌟 Fitur Bonus yang Diterapkan (+10 Poin)
+1. **Dashboard Ringkas (+2 Poin):** Menampilkan statistik total Dosen & Mahasiswa secara *real-time* di halaman utama `Home.razor`.
+2. **Pencarian Mahasiswa (+3 Poin):** Fitur *Search Bar* instan berdasarkan NIM atau Nama Mahasiswa.
+3. **Sorting / Pengurutan (+2 Poin):** Klik kolom tabel untuk mengurutkan data (*Ascending/Descending*).
+4. **Unit Test Backend (+3 Poin):** Menggunakan `xUnit` & `EF Core In-Memory` pada proyek `AcademicApi.Tests` untuk menguji controller backend.
 
 ---
 
