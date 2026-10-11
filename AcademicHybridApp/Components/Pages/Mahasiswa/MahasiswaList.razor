@@ -2,7 +2,12 @@
 @inject MahasiswaService MahasiswaService
 @inject NavigationManager Nav
 
-<h3>🎓 Daftar Mahasiswa</h3>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>🎓 Daftar Mahasiswa</h3>
+    <button class="btn btn-primary" @onclick="CreateMahasiswa">
+        <i class="bi bi-plus-circle"></i> Tambah Mahasiswa
+    </button>
+</div>
 
 @if (!string.IsNullOrEmpty(alertMessage))
 {
@@ -12,44 +17,62 @@
     </div>
 }
 
-<div class="mb-3">
-    <button class="btn btn-primary" @onclick="CreateMahasiswa">
-        <i class="bi bi-plus-circle"></i> Tambah Mahasiswa
-    </button>
+<!-- Fitur Bonus: Search Bar Pencarian -->
+<div class="row mb-3">
+    <div class="col-md-6">
+        <div class="input-group">
+            <span class="input-group-text">🔎</span>
+            <input type="text" class="form-control" placeholder="Cari berdasarkan NIM atau Nama Mahasiswa..."
+                   @bind="searchTerm" @bind:event="oninput" />
+            @if (!string.IsNullOrEmpty(searchTerm))
+            {
+                <button class="btn btn-outline-secondary" @onclick="() => searchTerm = string.Empty">Reset</button>
+            }
+        </div>
+    </div>
 </div>
 
 @if (isLoading)
 {
     <div class="d-flex align-items-center">
         <strong>Memuat data mahasiswa...</strong>
-        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+        <div class="spinner-border ms-auto text-primary" role="status" aria-hidden="true"></div>
     </div>
 }
-else if (mahasiswaList == null || !mahasiswaList.Any())
+else if (FilteredAndSortedList == null || !FilteredAndSortedList.Any())
 {
-    <p><em>Belum ada data mahasiswa.</em></p>
+    <p class="text-muted"><em>Data mahasiswa tidak ditemukan.</em></p>
 }
 else
 {
-    <table class="table table-bordered table-striped align-middle">
+    <!-- Fitur Bonus: Header Tabel Interaktif untuk Sorting -->
+    <table class="table table-bordered table-hover align-middle shadow-sm">
         <thead class="table-dark">
             <tr>
-                <th>NIM</th>
-                <th>Nama Mahasiswa</th>
+                <th style="cursor: pointer;" @onclick='() => SortTable("Nim")'>
+                    NIM @GetSortIcon("Nim")
+                </th>
+                <th style="cursor: pointer;" @onclick='() => SortTable("NamaMahasiswa")'>
+                    Nama Mahasiswa @GetSortIcon("NamaMahasiswa")
+                </th>
                 <th>Email</th>
-                <th>Angkatan</th>
-                <th>Dosen Wali</th>
-                <th style="width: 180px;">Aksi</th>
+                <th style="cursor: pointer;" @onclick='() => SortTable("Angkatan")'>
+                    Angkatan @GetSortIcon("Angkatan")
+                </th>
+                <th style="cursor: pointer;" @onclick='() => SortTable("NamaDosenWali")'>
+                    Dosen Wali @GetSortIcon("NamaDosenWali")
+                </th>
+                <th style="width: 160px;">Aksi</th>
             </tr>
         </thead>
         <tbody>
-            @foreach (var item in mahasiswaList)
+            @foreach (var item in FilteredAndSortedList)
             {
                 <tr>
-                    <td>@item.Nim</td>
-                    <td>@item.NamaMahasiswa</td>
+                    <td><code>@item.Nim</code></td>
+                    <td class="fw-bold">@item.NamaMahasiswa</td>
                     <td>@item.Email</td>
-                    <td>@item.Angkatan</td>
+                    <td><span class="badge bg-secondary">@item.Angkatan</span></td>
                     <td><span class="badge bg-info text-dark">@item.NamaDosenWali</span></td>
                     <td>
                         <button class="btn btn-warning btn-sm me-1" @onclick="() => EditMahasiswa(item.MahasiswaId)">Edit</button>
@@ -66,6 +89,11 @@ else
     private bool isLoading = true;
     private string? alertMessage;
     private bool isSuccess;
+
+    // Parameter Search & Sort
+    private string searchTerm = string.Empty;
+    private string sortColumn = "Nim";
+    private bool isAscending = true;
 
     protected override async Task OnInitializedAsync()
     {
@@ -90,15 +118,54 @@ else
         }
     }
 
-    private void CreateMahasiswa()
+    // Property Terkomputasi untuk Filtering & Sorting
+    private IEnumerable<MahasiswaModel> FilteredAndSortedList
     {
-        Nav.NavigateTo("/mahasiswa/form");
+        get
+        {
+            if (mahasiswaList == null) return Enumerable.Empty<MahasiswaModel>();
+
+            var filtered = mahasiswaList.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                filtered = filtered.Where(m =>
+                    m.Nim.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    m.NamaMahasiswa.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+                );
+            }
+
+            return sortColumn switch
+            {
+                "NamaMahasiswa" => isAscending ? filtered.OrderBy(m => m.NamaMahasiswa) : filtered.OrderByDescending(m => m.NamaMahasiswa),
+                "Angkatan" => isAscending ? filtered.OrderBy(m => m.Angkatan) : filtered.OrderByDescending(m => m.Angkatan),
+                "NamaDosenWali" => isAscending ? filtered.OrderBy(m => m.NamaDosenWali) : filtered.OrderByDescending(m => m.NamaDosenWali),
+                _ => isAscending ? filtered.OrderBy(m => m.Nim) : filtered.OrderByDescending(m => m.Nim)
+            };
+        }
     }
 
-    private void EditMahasiswa(int id)
+    private void SortTable(string column)
     {
-        Nav.NavigateTo($"/mahasiswa/form/{id}");
+        if (sortColumn == column)
+        {
+            isAscending = !isAscending;
+        }
+        else
+        {
+            sortColumn = column;
+            isAscending = true;
+        }
     }
+
+    private string GetSortIcon(string column)
+    {
+        if (sortColumn != column) return "↕️";
+        return isAscending ? "🔼" : "🔽";
+    }
+
+    private void CreateMahasiswa() => Nav.NavigateTo("/mahasiswa/form");
+    private void EditMahasiswa(int id) => Nav.NavigateTo($"/mahasiswa/form/{id}");
 
     private async Task DeleteMahasiswa(int id)
     {
