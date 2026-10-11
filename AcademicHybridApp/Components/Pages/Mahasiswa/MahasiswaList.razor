@@ -1,0 +1,115 @@
+﻿@page "/mahasiswa"
+@inject MahasiswaService MahasiswaService
+@inject NavigationManager Nav
+
+<h3>🎓 Daftar Mahasiswa</h3>
+
+@if (!string.IsNullOrEmpty(alertMessage))
+{
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+        @alertMessage
+        <button type="button" class="btn-close" @onclick="() => alertMessage = null"></button>
+    </div>
+}
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="CreateMahasiswa">
+        <i class="bi bi-plus-circle"></i> Tambah Mahasiswa
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex align-items-center">
+        <strong>Memuat data mahasiswa...</strong>
+        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else if (mahasiswaList == null || !mahasiswaList.Any())
+{
+    <p><em>Belum ada data mahasiswa.</em></p>
+}
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>NIM</th>
+                <th>Nama Mahasiswa</th>
+                <th>Email</th>
+                <th>Angkatan</th>
+                <th>Dosen Wali</th>
+                <th style="width: 180px;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in mahasiswaList)
+            {
+                <tr>
+                    <td>@item.Nim</td>
+                    <td>@item.NamaMahasiswa</td>
+                    <td>@item.Email</td>
+                    <td>@item.Angkatan</td>
+                    <td><span class="badge bg-info text-dark">@item.NamaDosenWali</span></td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-1" @onclick="() => EditMahasiswa(item.MahasiswaId)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteMahasiswa(item.MahasiswaId)">Hapus</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<MahasiswaModel>? mahasiswaList;
+    private bool isLoading = true;
+    private string? alertMessage;
+    private bool isSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            mahasiswaList = await MahasiswaService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            alertMessage = "Gagal terhubung ke API: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateMahasiswa()
+    {
+        Nav.NavigateTo("/mahasiswa/form");
+    }
+
+    private void EditMahasiswa(int id)
+    {
+        Nav.NavigateTo($"/mahasiswa/form/{id}");
+    }
+
+    private async Task DeleteMahasiswa(int id)
+    {
+        alertMessage = null;
+        var res = await MahasiswaService.DeleteAsync(id);
+        isSuccess = res.Success;
+        alertMessage = res.Message;
+
+        if (res.Success)
+        {
+            await LoadData();
+        }
+    }
+}

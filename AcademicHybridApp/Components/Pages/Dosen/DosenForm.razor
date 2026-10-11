@@ -1,0 +1,110 @@
+﻿@page "/dosen/form"
+@page "/dosen/form/{Id:int}"
+@inject DosenService DosenService
+@inject NavigationManager Nav
+
+<h3>@(Id.HasValue ? "✏️ Edit Dosen" : "➕ Tambah Dosen")</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="dosen" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">NIDN</label>
+        <InputText class="form-control" @bind-Value="dosen.Nidn" />
+        <ValidationMessage For="() => dosen.Nidn" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nama Dosen</label>
+        <InputText class="form-control" @bind-Value="dosen.NamaDosen" />
+        <ValidationMessage For="() => dosen.NamaDosen" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="dosen.Email" />
+        <ValidationMessage For="() => dosen.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Program Studi</label>
+        <InputText class="form-control" @bind-Value="dosen.Prodi" />
+        <ValidationMessage For="() => dosen.Prodi" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2" disabled="@isSubmitting">
+        @if (isSubmitting)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span> Menyimpan...</span>
+        }
+        else
+        {
+            <span>Simpan</span>
+        }
+    </button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Batal</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private DosenModel dosen = new();
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (Id.HasValue)
+        {
+            var data = await DosenService.GetByIdAsync(Id.Value);
+            if (data != null)
+            {
+                dosen = data;
+            }
+            else
+            {
+                errorMessage = "Data dosen tidak ditemukan.";
+            }
+        }
+    }
+
+    private async Task Save()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        (bool success, string message) res;
+
+        if (Id.HasValue)
+        {
+            res = await DosenService.UpdateAsync(Id.Value, dosen);
+        }
+        else
+        {
+            res = await DosenService.CreateAsync(dosen);
+        }
+
+        isSubmitting = false;
+
+        if (res.success)
+        {
+            Nav.NavigateTo("/dosen");
+        }
+        else
+        {
+            errorMessage = res.message;
+        }
+    }
+
+    private void Cancel()
+    {
+        Nav.NavigateTo("/dosen");
+    }
+}

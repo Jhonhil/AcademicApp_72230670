@@ -1,0 +1,129 @@
+﻿@page "/mahasiswa/form"
+@page "/mahasiswa/form/{Id:int}"
+@inject MahasiswaService MahasiswaService
+@inject DosenService DosenService
+@inject NavigationManager Nav
+
+<h3>@(Id.HasValue ? "✏️ Edit Mahasiswa" : "➕ Tambah Mahasiswa")</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+
+<EditForm Model="mahasiswa" OnValidSubmit="Save">
+    <DataAnnotationsValidator />
+
+    <div class="mb-3">
+        <label class="form-label">NIM</label>
+        <InputText class="form-control" @bind-Value="mahasiswa.Nim" />
+        <ValidationMessage For="() => mahasiswa.Nim" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Nama Mahasiswa</label>
+        <InputText class="form-control" @bind-Value="mahasiswa.NamaMahasiswa" />
+        <ValidationMessage For="() => mahasiswa.NamaMahasiswa" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <InputText class="form-control" @bind-Value="mahasiswa.Email" />
+        <ValidationMessage For="() => mahasiswa.Email" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Angkatan</label>
+        <InputNumber class="form-control" @bind-Value="mahasiswa.Angkatan" />
+        <ValidationMessage For="() => mahasiswa.Angkatan" />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Dosen Wali</label>
+        <InputSelect class="form-select" @bind-Value="mahasiswa.DosenId">
+            <option value="0">-- Pilih Dosen Wali --</option>
+            @if (dosenOptions != null)
+            {
+                @foreach (var d in dosenOptions)
+                {
+                    <option value="@d.DosenId">@d.NamaDosen (@d.Prodi)</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="() => mahasiswa.DosenId" />
+    </div>
+
+    <button type="submit" class="btn btn-success me-2" disabled="@isSubmitting">
+        @if (isSubmitting)
+        {
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            <span> Menyimpan...</span>
+        }
+        else
+        {
+            <span>Simpan</span>
+        }
+    </button>
+    <button type="button" class="btn btn-secondary" @onclick="Cancel">Batal</button>
+</EditForm>
+
+@code {
+    [Parameter]
+    public int? Id { get; set; }
+
+    private MahasiswaModel mahasiswa = new();
+    private List<DosenModel>? dosenOptions;
+    private bool isSubmitting = false;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        dosenOptions = await DosenService.GetAllAsync();
+
+        if (Id.HasValue)
+        {
+            var data = await MahasiswaService.GetByIdAsync(Id.Value);
+            if (data != null)
+            {
+                mahasiswa = data;
+            }
+            else
+            {
+                errorMessage = "Data mahasiswa tidak ditemukan.";
+            }
+        }
+    }
+
+    private async Task Save()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+
+        (bool success, string message) res;
+
+        if (Id.HasValue)
+        {
+            res = await MahasiswaService.UpdateAsync(Id.Value, mahasiswa);
+        }
+        else
+        {
+            res = await MahasiswaService.CreateAsync(mahasiswa);
+        }
+
+        isSubmitting = false;
+
+        if (res.success)
+        {
+            Nav.NavigateTo("/mahasiswa");
+        }
+        else
+        {
+            errorMessage = res.message;
+        }
+    }
+
+    private void Cancel()
+    {
+        Nav.NavigateTo("/mahasiswa");
+    }
+}

@@ -1,0 +1,113 @@
+﻿@page "/dosen"
+@inject DosenService DosenService
+@inject NavigationManager Nav
+
+<h3>👨‍🏫 Daftar Dosen</h3>
+
+@if (!string.IsNullOrEmpty(alertMessage))
+{
+    <div class="alert @(isSuccess ? "alert-success" : "alert-danger") alert-dismissible fade show" role="alert">
+        @alertMessage
+        <button type="button" class="btn-close" @onclick="() => alertMessage = null"></button>
+    </div>
+}
+
+<div class="mb-3">
+    <button class="btn btn-primary" @onclick="CreateDosen">
+        <i class="bi bi-plus-circle"></i> Tambah Dosen
+    </button>
+</div>
+
+@if (isLoading)
+{
+    <div class="d-flex align-items-center">
+        <strong>Memuat data dosen...</strong>
+        <div class="spinner-border ms-auto" role="status" aria-hidden="true"></div>
+    </div>
+}
+else if (dosenList == null || !dosenList.Any())
+{
+    <p><em>Belum ada data dosen yang tersedia.</em></p>
+}
+else
+{
+    <table class="table table-bordered table-striped align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>NIDN</th>
+                <th>Nama Dosen</th>
+                <th>Email</th>
+                <th>Prodi</th>
+                <th style="width: 180px;">Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in dosenList)
+            {
+                <tr>
+                    <td>@item.Nidn</td>
+                    <td>@item.NamaDosen</td>
+                    <td>@item.Email</td>
+                    <td>@item.Prodi</td>
+                    <td>
+                        <button class="btn btn-warning btn-sm me-1" @onclick="() => EditDosen(item.DosenId)">Edit</button>
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteDosen(item)">Hapus</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<DosenModel>? dosenList;
+    private bool isLoading = true;
+    private string? alertMessage;
+    private bool isSuccess;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        isLoading = true;
+        try
+        {
+            dosenList = await DosenService.GetAllAsync();
+        }
+        catch (Exception ex)
+        {
+            alertMessage = "Gagal terhubung ke API: " + ex.Message;
+            isSuccess = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void CreateDosen()
+    {
+        Nav.NavigateTo("/dosen/form");
+    }
+
+    private void EditDosen(int id)
+    {
+        Nav.NavigateTo($"/dosen/form/{id}");
+    }
+
+    private async Task DeleteDosen(DosenModel item)
+    {
+        alertMessage = null;
+        var res = await DosenService.DeleteAsync(item.DosenId);
+        isSuccess = res.Success;
+        alertMessage = res.Message;
+
+        if (res.Success)
+        {
+            await LoadData();
+        }
+    }
+}
