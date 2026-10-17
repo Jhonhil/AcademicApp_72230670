@@ -204,33 +204,64 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 
 ## 💻 Langkah-Langkah Menjalankan Proyek
 
-### Cara 1: Menggunakan Visual Studio (Rekomendasi)
+### 1. Kloning Repositori Git
+Buka terminal atau Git Bash pada komputer Anda dan lakukan kloning repositori:
+```bash
+git clone https://github.com/Jhonhil/AcademicApp_72230670.git
+cd AcademicApp_72230670/AcademicApp
+```
 
-1. Buka file solusi `AcademicApp.slnx` di Visual Studio.
-2. Di panel **Solution Explorer**, klik kanan pada nama Solution `AcademicApp` -> pilih **Configure Startup Projects...**
+---
+
+### 2. Mempersiapkan Database & Migrasi (EF Core)
+Aplikasi telah menyertakan berkas basis data SQLite bawaan (`academic.db`). Namun, apabila Anda ingin me-reset database atau menerapkan migrasi pada database kosong:
+```powershell
+# 1. Pastikan dotnet-ef tools terinstal (opsional jika belum pernah diinstal)
+dotnet tool install --global dotnet-ef
+
+# 2. Terapkan migrasi ke SQLite
+dotnet ef database update --project AcademicApi
+```
+> **Catatan:** Saat backend API dijalankan pertama kali, kode `db.Database.Migrate()` pada `Program.cs` juga secara otomatis akan memvalidasi skema tabel dan mengisi data awal (*seed data*: 3 dosen & 5 mahasiswa).
+
+---
+
+### 3. Menjalankan Aplikasi
+
+#### 🔹 Cara 1: Menggunakan Visual Studio 2022 / 2026 (Direkomendasikan)
+1. Buka berkas solusi `AcademicApp.slnx` di Visual Studio.
+2. Di panel **Solution Explorer**, klik kanan pada nama Solution **AcademicApp** &rarr; pilih **Configure Startup Projects...**
 3. Pilih opsi **Multiple startup projects**:
-   * Set `AcademicApi` ke **Start**
-   * Set `AcademicHybridApp` ke **Start**
-4. Klik **Apply** dan **OK**.
-5. Tekan tombol **F5** (atau tombol **Start**).
-6. Browser Swagger (`http://localhost:5057/swagger`) dan Aplikasi Blazor Hybrid akan terbuka dan terhubung secara otomatis.
+   * Set **AcademicApi** ke aksi **Start**
+   * Set **AcademicHybridApp** ke aksi **Start**
+4. Klik **Apply** lalu **OK**.
+5. Tekan tombol **F5** (atau klik tombol **Start**).
+6. Browser Swagger UI (`http://localhost:5057/swagger`) dan Aplikasi Desktop Blazor Hybrid (.NET MAUI Windows) akan terbuka serta terhubung secara otomatis.
 
-### Cara 2: Menggunakan Terminal / PowerShell
+#### 🔹 Cara 2: Menggunakan Terminal / PowerShell (CLI)
+Buka 2 jendela terminal / PowerShell terpisah di dalam direktori `AcademicApp`:
 
-1. **Jalankan Backend Web API:**
-   ```powershell
-   cd AcademicApi
-   dotnet run
-   ```
-   *API akan aktif mendengarkan request di `http://localhost:5057`.*
+* **Terminal 1 — Menjalankan Backend Web API:**
+  ```powershell
+  dotnet run --project AcademicApi
+  ```
+  *API akan aktif mendengarkan request di `http://localhost:5057`.*  
+  *Dokumentasi Swagger UI interaktif dapat diakses melalui browser di: `http://localhost:5057/swagger`.*
 
-2. **Jalankan Frontend Blazor Hybrid:**
-   Buka jendela terminal baru:
-   ```powershell
-   cd AcademicHybridApp
-   dotnet build
-   dotnet run
-   ```
+* **Terminal 2 — Menjalankan Frontend Blazor Hybrid:**
+  ```powershell
+  dotnet run --project AcademicHybridApp -f net10.0-windows10.0.19041.0
+  ```
+  *(Parameter `-f net10.0-windows10.0.19041.0` secara eksplisit memilih target platform Windows desktop).*
+
+---
+
+### 4. Menjalankan Pengujian Unit Otomatis (Unit Testing)
+Untuk memverifikasi fungsionalitas logika bisnis backend, aturan proteksi dosen wali, pencegahan NIDN/NIM duplikat, dan validasi data secara otomatis:
+```powershell
+dotnet test
+```
+*Hasil pengujian yang diharapkan: Seluruh 8 test case lulus 100% (`Passed: 8, Failed: 0`).*
 
 ---
 
