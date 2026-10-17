@@ -1,6 +1,7 @@
-﻿@page "/dosen"
+@page "/dosen"
 @inject DosenService DosenService
 @inject NavigationManager Nav
+@inject IJSRuntime JSRuntime
 
 <h3>👨‍🏫 Daftar Dosen</h3>
 
@@ -100,6 +101,9 @@ else
 
     private async Task DeleteDosen(DosenModel item)
     {
+        bool confirmed = await JSRuntime.InvokeAsync<bool>("confirm", $"Apakah Anda yakin ingin menghapus data dosen '{item.NamaDosen}' (NIDN: {item.Nidn})?");
+        if (!confirmed) return;
+
         alertMessage = null;
         var res = await DosenService.DeleteAsync(item.DosenId);
         isSuccess = res.Success;

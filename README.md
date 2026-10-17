@@ -60,6 +60,7 @@ AcademicSystem/
 │   ├── DTOs/
 │   │   ├── DosenDtos.cs                 # DosenReadDto, DosenCreateUpdateDto
 │   │   └── MahasiswaDtos.cs             # MahasiswaReadDto, MahasiswaCreateUpdateDto
+│   ├── Migrations/                      # EF Core Code-First Migrations
 │   ├── Model/
 │   │   ├── Dosen.cs                     # Entitas Dosen
 │   │   └── Mahasiswa.cs                 # Entitas Mahasiswa
@@ -67,6 +68,10 @@ AcademicSystem/
 │   │   └── launchSettings.json          # Konfigurasi Port HTTP (5057)
 │   ├── appsettings.json                 # Connection String SQLite
 │   └── Program.cs                       # Registrasi Service, CORS, EF Core, & Swagger
+│
+├── AcademicApi.Tests/                   # Proyek Unit Testing (xUnit)
+│   ├── DosenControllerTests.cs          # Test CRUD Dosen, Unique NIDN, & Conflict Wali
+│   └── MahasiswaControllerTests.cs      # Test CRUD Mahasiswa, Unique NIM, FK Dosen Wali
 │
 ├── AcademicHybridApp/                   # Proyek Frontend .NET MAUI Blazor Hybrid
 │   ├── Components/
@@ -257,9 +262,9 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 
 ### 🌟 Fitur Bonus yang Diterapkan (+10 Poin)
 1. **Dashboard Ringkas (+2 Poin):** Menampilkan statistik total Dosen & Mahasiswa secara *real-time* di halaman utama `Home.razor`.
-2. **Pencarian Mahasiswa (+3 Poin):** Fitur *Search Bar* instan berdasarkan NIM atau Nama Mahasiswa.
-3. **Sorting / Pengurutan (+2 Poin):** Klik kolom tabel untuk mengurutkan data (*Ascending/Descending*).
-4. **Unit Test Backend (+3 Poin):** Menggunakan `xUnit` & `EF Core In-Memory` pada proyek `AcademicApi.Tests` untuk menguji controller backend.
+2. **Pencarian Mahasiswa (+3 Poin):** Fitur *Search Bar* instan berdasarkan NIM atau Nama Mahasiswa pada `MahasiswaList.razor`.
+3. **Sorting / Pengurutan (+2 Poin):** Klik kolom tabel untuk mengurutkan data (*Ascending/Descending*) secara interaktif.
+4. **Unit Test Backend (+3 Poin):** Menggunakan `xUnit` & `EF Core In-Memory` pada proyek `AcademicApi.Tests` (8 skenario pengujian komprehensif untuk `DosenController` dan `MahasiswaController`, 100% lulus).
 
 ---
 
@@ -267,9 +272,13 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(apiBaseU
 
 - [x] Backend dapat build dan berjalan tanpa error.
 - [x] Swagger UI menampilkan seluruh endpoint CRUD Dosen dan Mahasiswa.
-- [x] Database SQLite (`academic.db`) terintegrasi dan memiliki seed data awal.
-- [x] Frontend terhubung ke Base URL API yang tepat (`http://localhost:5057/`).
-- [x] Dropdown pilihan Dosen Wali pada form mahasiswa diperoleh dari API Dosen.
-- [x] Proteksi hapus dosen yang masih bertugas sebagai Dosen Wali berfungsi.
+- [x] EF Core Code-First Migration (`Migrations/`) dan Database SQLite (`academic.db`) terintegrasi lengkap dengan seed data awal.
+- [x] Frontend terhubung ke Base URL API yang tepat (`http://localhost:5057/` / `http://10.0.2.2:5057/`).
+- [x] CRUD Dosen dan Mahasiswa telah diuji dan berfungsi.
+- [x] Dropdown pilihan Dosen Wali pada form mahasiswa diperoleh dinamis dari API Dosen.
+- [x] Proteksi hapus dosen yang masih bertugas sebagai Dosen Wali berfungsi (`409 Conflict`).
+- [x] Dialog konfirmasi sebelum operasi hapus data telah diterapkan pada Dosen dan Mahasiswa.
+- [x] Validasi input (client-side & server-side) serta notifikasi/alert status berhasil & gagal telah diterapkan.
+- [x] Unit tests xUnit otomatis lulus 100% (8 test cases).
 - [x] Folder `bin` dan `obj` tidak ikut terunggah ke repositori Git (`.gitignore` aktif).
 - [x] Dokumen `README.md` dan tautan repositori sudah lengkap.
