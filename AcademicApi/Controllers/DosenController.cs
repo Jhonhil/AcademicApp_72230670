@@ -1,4 +1,4 @@
-﻿using AcademicApi.Data;
+using AcademicApi.Data;
 using AcademicApi.DTOs;
 using AcademicApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +18,7 @@ namespace AcademicApi.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<DosenReadDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<DosenReadDto>>> GetAll()
         {
             var list = await _context.Dosens
@@ -34,6 +35,8 @@ namespace AcademicApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(DosenReadDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<DosenReadDto>> GetById(int id)
         {
             var d = await _context.Dosens.FindAsync(id);
@@ -50,6 +53,9 @@ namespace AcademicApi.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(DosenReadDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<DosenReadDto>> Create([FromBody] DosenCreateUpdateDto dto)
         {
             if (await _context.Dosens.AnyAsync(d => d.Nidn == dto.Nidn))
@@ -79,6 +85,10 @@ namespace AcademicApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(DosenReadDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Update(int id, [FromBody] DosenCreateUpdateDto dto)
         {
             var dosen = await _context.Dosens.FindAsync(id);
@@ -104,6 +114,9 @@ namespace AcademicApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Delete(int id)
         {
             var dosen = await _context.Dosens.FindAsync(id);

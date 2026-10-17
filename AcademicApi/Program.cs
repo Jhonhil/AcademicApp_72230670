@@ -1,5 +1,6 @@
 using AcademicApi.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,9 +8,26 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddDbContext<AcademicDbContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+// Routing agar URL di Swagger & API otomatis lowercase (/api/dosen & /api/mahasiswa)
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Sistem Informasi Akademik API",
+        Version = "v1",
+        Description = "Layanan REST API CRUD Mahasiswa dan Dosen — Tugas Pengganti UTS Pemrograman Mobile 2026.\n\n" +
+                      "**Nama:** Yohanes Hilapok | **NIM:** 72230670 | **Prodi:** Sistem Informasi",
+        Contact = new OpenApiContact
+        {
+            Name = "Yohanes Hilapok (72230670)",
+            Email = "yohaneshilpaok0@gmail.com"
+        }
+    });
+});
 
 // Terapkan CORS agar Blazor Hybrid / HttpClient bisa mengakses API
 builder.Services.AddCors(options =>

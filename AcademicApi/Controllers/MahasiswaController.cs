@@ -1,4 +1,4 @@
-﻿using AcademicApi.Data;
+using AcademicApi.Data;
 using AcademicApi.DTOs;
 using AcademicApi.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +18,7 @@ namespace AcademicApi.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<MahasiswaReadDto>), StatusCodes.Status200OK)]
         public async Task<ActionResult<IEnumerable<MahasiswaReadDto>>> GetAll()
         {
             var list = await _context.Mahasiswas
@@ -37,6 +38,8 @@ namespace AcademicApi.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(typeof(MahasiswaReadDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<MahasiswaReadDto>> GetById(int id)
         {
             var m = await _context.Mahasiswas.Include(x => x.DosenWali).FirstOrDefaultAsync(x => x.MahasiswaId == id);
@@ -55,6 +58,9 @@ namespace AcademicApi.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(typeof(MahasiswaReadDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<ActionResult<MahasiswaReadDto>> Create([FromBody] MahasiswaCreateUpdateDto dto)
         {
             if (await _context.Mahasiswas.AnyAsync(m => m.Nim == dto.Nim))
@@ -93,6 +99,10 @@ namespace AcademicApi.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Update(int id, [FromBody] MahasiswaCreateUpdateDto dto)
         {
             var m = await _context.Mahasiswas.FindAsync(id);
@@ -116,6 +126,8 @@ namespace AcademicApi.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             var m = await _context.Mahasiswas.FindAsync(id);
